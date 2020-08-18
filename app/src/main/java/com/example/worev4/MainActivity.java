@@ -33,7 +33,9 @@ import android.view.textclassifier.TextLinks;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -76,8 +78,11 @@ public class MainActivity extends AppCompatActivity {
     private LineGraphSeries<DataPoint> mSeries2;
     private double graph2LastXValue = 0d;
     private static final int PERMISSION_REQUEST_CODE = 1;
+    private static final int PERMISSION_ACCESS_COARSE_LOCATION = 1;
+    private static final int PERMISSION_ACCESS_FINE_LOCATION = 1;
     String[] permissions;
 
+    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,31 +125,13 @@ public class MainActivity extends AppCompatActivity {
         //graphViewBar.addSeries(barGraphSeries);
         //graphView.getGridLabelRenderer().setHumanRounding(false);
         //permission check
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-//        SensorManager mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-//        List<Sensor> deviceSensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
-//        for(Sensor s : deviceSensors){
-//            s.getName();
-//            Log.d("sensor",s.getName());
-//        }
-//        ConsumerIrManager consumerIrManager = (ConsumerIrManager)getSystemService(CONSUMER_IR_SERVICE);
-//        consumerIrManager.hasIrEmitter();
-//        Log.d("ir",String.valueOf(consumerIrManager.hasIrEmitter()));
         //get cell info
-        //TelephonyManager tel = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        //String operatorName = tel.getNetworkOperatorName();
-        //String resultado = operatorName;
-        //Log.d("Result", resultado);
-        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_DENIED) {
-
-            Log.d("permission", "permission denied to SEND_SMS - requesting it");
-            permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION};
-
-            requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-
-        }
+        TelephonyManager tel = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        String operatorName = tel.getNetworkOperatorName();
+        String resultado = operatorName;
+        Log.d("Result", resultado);
+        requestFineCoarseLocation();
+        Log.d("Result - ", String.valueOf(tel.getAllCellInfo()));
 
 
          signalStrengthListener = new SignalStrengthListener();
@@ -153,8 +140,6 @@ public class MainActivity extends AppCompatActivity {
 
         //new SpeedTestTask().execute();
     }
-
-
 
     protected class SignalStrengthListener extends PhoneStateListener {
         @SuppressLint("MissingPermission")
@@ -213,15 +198,7 @@ public class MainActivity extends AppCompatActivity {
                             requestPermissions(permissions, PERMISSION_REQUEST_CODE);
 
                         }
-                        if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
-                                == PackageManager.PERMISSION_DENIED) {
 
-                            Log.d("permission", "permission denied to SEND_SMS - requesting it");
-                            String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION};
-
-                            requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-
-                        }
                         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                                 == PackageManager.PERMISSION_DENIED) {
 
@@ -365,6 +342,49 @@ public class MainActivity extends AppCompatActivity {
 
     private double getRandom() {
         return mLastRandom += mRand.nextDouble() * 0.5 - 0.25;
+    }
+
+    void requestAccessCoarseLocation(){
+        if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)){
+            if(checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},PERMISSION_ACCESS_COARSE_LOCATION);
+            }
+        }
+    }
+    void requestFineCoarseLocation(){
+        if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY)){
+            if(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},PERMISSION_ACCESS_FINE_LOCATION);
+            }
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == PERMISSION_ACCESS_COARSE_LOCATION){
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(MainActivity.this,
+                        "ACCESS COARSE LOCATION OK",
+                        Toast.LENGTH_LONG).show();
+            }else{
+                Toast.makeText(MainActivity.this,
+                        "ACCESS COARSE LOCATION OK",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+        if(requestCode == PERMISSION_ACCESS_FINE_LOCATION){
+            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(MainActivity.this,
+                        "ACCESS FINE LOCATION OK",
+                        Toast.LENGTH_LONG).show();
+            }else{
+                Toast.makeText(MainActivity.this,
+                        "ACCESS FINE LOCATION OK",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
 }
