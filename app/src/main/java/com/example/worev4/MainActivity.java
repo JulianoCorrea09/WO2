@@ -46,6 +46,8 @@ import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import org.apache.commons.net.ntp.TimeStamp;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -140,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
 
         //new SpeedTestTask().execute();
     }
-  ///teste
     protected class SignalStrengthListener extends PhoneStateListener {
         @SuppressLint("MissingPermission")
         @RequiresApi(api = Build.VERSION_CODES.O)
@@ -150,178 +151,70 @@ public class MainActivity extends AppCompatActivity {
             //graph2LastXValue += 1d;
             //mSeries2.appendData(new DataPoint(graph2LastXValue, getRandom()), true, 40);
             tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-
-            if (tm.getNetworkType() == TelephonyManager.NETWORK_TYPE_LTE) {
-                Log.d("type lte", "LTE " + tm.getNetworkType() + " " + tm.getNetworkOperator()
-                        + " " + tm.getNetworkOperatorName() + " ");
-            }
-            ltestr = signalStrength.toString();
-            parts = ltestr.split(" ");
-            String levels = parts[2];
-
-            Log.d("Levels", levels);
-            //signalStrength.getLevel()
-            //Retrieve an abstract level value for the overall signal strength.
-            //a single integer from 0 to 4 representing the general signal quality.
-            // This may take into account many different radio technology inputs.
-            // 0 represents very poor signal strength while 4 represents a very strong signal strength.
-            //String level = String.valueOf(signalStrength.getLevel());
-            //signalStrength.getCellSignalStrengths();
-            //signalStrength.;
-
-            Log.d("Verificando o que sai", ltestr + "-----" + signalStrength.getLevel()
-                    + "----" + signalStrength.getCellSignalStrengths());
-            Log.d("Ok Operadora", tm.getNetworkOperatorName());
-
-
-            try {
-                if (ActivityCompat.checkSelfPermission(getApplicationContext(),
-                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //requestPermissions(new String[]{
-                    // Manifest.permission.ACCESS_FINE_LOCATION},PERMISSION_CODE);
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-
-
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-
-                        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE)
-                                == PackageManager.PERMISSION_DENIED) {
-
-                            Log.d("permission", "permission denied to SEND_SMS - requesting it");
-                            String[] permissions = {Manifest.permission.READ_PHONE_STATE};
-
-                            requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-
-                        }
-
-                        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                                == PackageManager.PERMISSION_DENIED) {
-
-                            Log.d("permission", "permission denied to SEND_SMS - requesting it");
-                            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-
-                            requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-                        }
+            requestFineCoarseLocation();
+            cellInfoList = tm.getAllCellInfo();
+            Log.d("cellInfoList", cellInfoList.toString());
+            int count = 0;
+            for (CellInfo cellInfo : cellInfoList) {
+                if (cellInfo instanceof CellInfoLte) {
+                    if(cellInfo.isRegistered()){
+                        Log.d("infoserver", String.valueOf(cellInfo.isRegistered()) + " " + ((CellInfoLte) cellInfo).getCellIdentity().getPci());
                     }
-
-                }
-
-                cellInfoList = tm.getAllCellInfo();
-                Log.d("cellInfoList", cellInfoList.toString());
-                int count = 0;
-                //int rssi;
-                for (CellInfo cellInfo : cellInfoList) {
-                    if (cellInfo instanceof CellInfoLte) {
-                        if (count == 0) {
-                            //Cell Info
-                            long datetime = cellInfo.getTimeStamp();
-                            long millisecondsSinceEvent = (SystemClock.elapsedRealtimeNanos() - datetime) / 1000000L;
-                            long timeOfEvent = System.currentTimeMillis() - millisecondsSinceEvent;
-                            Date date = new Date(timeOfEvent);
-                            Date now = new Date(System.currentTimeMillis());
-                            //milliseconds to time hh:mm:ss
-                            String time = DateFormat.getTimeInstance(DateFormat.MEDIUM)
+                    else{
+                        Log.d("infoserver",String.valueOf(cellInfo.isRegistered()) + " " + ((CellInfoLte) cellInfo).getCellIdentity().getPci());
+                    }
+                    if (count == 0) {
+                        String time = DateFormat.getTimeInstance(DateFormat.MEDIUM)
                                     .format(System.currentTimeMillis());
-                            SimpleDateFormat formatter = new SimpleDateFormat();
-                            Calendar calendar = Calendar.getInstance();
-                            calendar.setTimeInMillis(timeOfEvent);
-                            formatter.format(calendar.getTime());
-                            Log.d("date", time);
-                            int cellPci = ((CellInfoLte) cellInfo).getCellIdentity().getPci();
-                            int ci = ((CellInfoLte) cellInfo).getCellIdentity().getCi();
-                            double enobebId = ci / 256;
-                            int cid = 0;
-                            int tac = ((CellInfoLte) cellInfo).getCellIdentity().getTac();
-                            int earfcn = ((CellInfoLte) cellInfo).getCellIdentity().getEarfcn();
-                            int mcc = ((CellInfoLte) cellInfo).getCellIdentity().getMcc();
-                            int mnc = ((CellInfoLte) cellInfo).getCellIdentity().getMnc();
-                            String detail = ((CellInfoLte) cellInfo).getCellIdentity().toString();
-                            //Cell Level
-                            int rsrp = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrp();
-                            int rsrq = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrq();
-                            int snr = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssnr();
-                            int ta = ((CellInfoLte) cellInfo).getCellSignalStrength().getTimingAdvance();
-                            int asu = ((CellInfoLte) cellInfo).getCellSignalStrength().getAsuLevel();
-                            int cqi = ((CellInfoLte) cellInfo).getCellSignalStrength().getCqi();
-                            int dbm = ((CellInfoLte) cellInfo).getCellSignalStrength().getDbm();
-                            int level = ((CellInfoLte) cellInfo).getCellSignalStrength().getLevel();
-                            String detail2 = ((CellInfoLte) cellInfo).getCellSignalStrength().toString();
-                            // int rssi2 = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssi();
-                            textViewRsrq.setText("" + rsrq);
-                            textViewCi.setText("" + ci);
-                            textViewRSRP.setText("" + rsrp);
-                            textViewTA.setText("" + ta);
-                            String RSSI = parse(detail2);
-                            textViewRSSI.setText(RSSI);
-                            double rsrpD = rsrq;
-                            graph2LastXValue += 1d;
-                            graphView.getViewport().setScrollable(true);
-                            mSeries2.appendData(new DataPoint(graph2LastXValue, rsrpD), true, 200);
-                            graphView.setTitle("RSRP");
-                            //graphView.getViewport().setScalable(true);
-                            //barGraphSeries.appendData(new DataPoint(graph2LastXValue,getRandom()),true,40);
-                            Log.d("Details: ", String.valueOf(signalStrength.getCellSignalStrengths()));
-                            Log.d("PCELL" +
-                                    " CI = " + String.valueOf(ci) +
-                                    " eNb " + String.valueOf(enobebId) +
-                                    " CID " + String.valueOf(cid) +
-                                    ", TAC = " + String.valueOf(tac) +
-                                    " PCI ", String.valueOf(cellPci) +
-                                    ", EARFCN = " + String.valueOf(earfcn) +
-                                    // ", RSSI = " + String.valueOf(rssi) +
-                                    ", RSRP = " + String.valueOf(rsrp) +
-                                    ", RSRQ = " + String.valueOf(rsrq) +
-                                    ", SNR = " + String.valueOf(snr) +
-                                    ", TA = " + String.valueOf(ta) +
-                                    ", RSSI= " + RSSI +
-                                    ", ASU = " + String.valueOf(asu) +
-                                    ", CQI = " + String.valueOf(cqi) +
-                                    ", dBm = " + String.valueOf(dbm) +
-                                    ", Level = " + String.valueOf(level) +
-                                    detail + " " + detail2 + " ");
-                            String value = "CI = " + String.valueOf(ci) + "\n eNb " + String.valueOf(enobebId) +
-                                    " \nCID " + String.valueOf(cid) +
-                                    ", \nTAC = " + String.valueOf(tac) +
-                                    "\nEARFCN = " + String.valueOf(earfcn) +
-                                    //", \nRSSI = " + String.valueOf(rssi) +
-                                    ", \nRSRP = " + String.valueOf(rsrp) +
-                                    ", \nRSRQ = " + String.valueOf(rsrq) +
-                                    ", \nSNR = " + String.valueOf(snr) +
-                                    ", \nTA = " + String.valueOf(ta);
-                            editText.setText(value);
-                            count++;
+
+                        String data = DateFormat.getDateInstance(DateFormat.SHORT)
+                                .format(System.currentTimeMillis());
+                        Log.d("date", data + " " +  time);
+
+                        int cellPci = ((CellInfoLte) cellInfo).getCellIdentity().getPci();
+                        int ci = ((CellInfoLte) cellInfo).getCellIdentity().getCi();
+                        double enobebId = ci / 256;
+                        int cid = 0;
+                        int tac = ((CellInfoLte) cellInfo).getCellIdentity().getTac();
+                        int earfcn = ((CellInfoLte) cellInfo).getCellIdentity().getEarfcn();
+                        String operatorLong = (String) ((CellInfoLte) cellInfo).getCellIdentity().getOperatorAlphaLong();
+                        String operatorAlphaShort = (String) ((CellInfoLte) cellInfo).getCellIdentity().getOperatorAlphaShort();
+
+                        String mcc = ((CellInfoLte) cellInfo).getCellIdentity().getMccString();
+                        String mnc = ((CellInfoLte) cellInfo).getCellIdentity().getMncString();
+                        String detail = ((CellInfoLte) cellInfo).getCellIdentity().toString();
+                        //Cell Level
+                        int rsrp = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrp();
+                        int rsrq = ((CellInfoLte) cellInfo).getCellSignalStrength().getRsrq();
+                        int snr = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssnr();
+                        int ta = ((CellInfoLte) cellInfo).getCellSignalStrength().getTimingAdvance();
+                        int asu = ((CellInfoLte) cellInfo).getCellSignalStrength().getAsuLevel();
+                        int cqi = ((CellInfoLte) cellInfo).getCellSignalStrength().getCqi();
+                        int dbm = ((CellInfoLte) cellInfo).getCellSignalStrength().getDbm();
+                        int level = ((CellInfoLte) cellInfo).getCellSignalStrength().getLevel();
+                        int rssi = ((CellInfoLte) cellInfo).getCellSignalStrength().getRssi();
+                        textViewRsrq.setText("" + rsrq);
+                        textViewCi.setText("" + ci);
+                        textViewRSRP.setText("" + rsrp);
+                        textViewTA.setText("" + ta);
+                        textViewRSSI.setText(""+rssi);
+                        double rsrpD = rsrq;
+                        graph2LastXValue += 1d;
+                        graphView.getViewport().setScrollable(true);
+                        mSeries2.appendData(new DataPoint(graph2LastXValue, rsrpD), true, 200);
+                        graphView.setTitle("RSRP");
+                        //graphView.getViewport().setScalable(true);
+                        //barGraphSeries.appendData(new DataPoint(graph2LastXValue,getRandom()),true,40);
+                        count++;
                         }
                         Log.d("CellInfo", String.valueOf(cellInfo));
                         // cast to CellInfoLte and call all the CellInfoLte methods you need
                         // Gets the LTE PCI: (returns Physical Cell Id 0..503, Integer.MAX_VALUE if unknown)
                     }
                 }
-            } catch (Exception e) {
-                Log.d("SignalStrength", "Exception: " + e.getMessage());
-            }
+
             super.onSignalStrengthsChanged(signalStrength);
         }
-    }
-
-    public String parse(String cellSignalStrengthStr) {
-        String RSSI = "999";
-        Log.d("parse", cellSignalStrengthStr);
-        if (cellSignalStrengthStr.contains("ss=")) {
-            String[] fields = cellSignalStrengthStr.split(" ");
-            String ss = fields[1].split("=")[1];
-            int ssC = Integer.valueOf(ss);
-            String[] level = {"-113", "-111", "-109", "-107", "-105", "-103", "-101", "-99", "-97",
-                    "-95", "-93", "-91", "-89", "-87", "-85", "-83", "-81", "-79", "-77", "-75",
-                    "-73", "-71", "-69", "-67", "-65", "-63", "-61", "-59", "-57", "-55", "-53",
-                    "-51", "99"};
-            RSSI = level[ssC];
-        }
-        return RSSI;
     }
 
     private DataPoint[] generateData() {
