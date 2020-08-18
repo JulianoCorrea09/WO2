@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
         //new SpeedTestTask().execute();
     }
-
+  ///teste
     protected class SignalStrengthListener extends PhoneStateListener {
         @SuppressLint("MissingPermission")
         @RequiresApi(api = Build.VERSION_CODES.O)
